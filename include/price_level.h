@@ -38,6 +38,7 @@ struct PriceLevel {
 
         inline uint32_t get_total_volume() const { return total_volume_; }
 
+
     private:
         uint32_t total_volume_;
         // <order_id, volume>
