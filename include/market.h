@@ -12,10 +12,17 @@ struct Market {
     public:
         Market(uint32_t peg_price)
             : peg_price(peg_price),
-              buy_book(1001, true, peg_price),
-              sell_book(1001, false, peg_price),
+              buy_book(1001, peg_price),
+              sell_book(1001, peg_price),
               order_count(0),
               user_count(0) {};
+
+        inline int get_index(uint32_t price) const {
+            if (price < buy_book.lower_bound || price > buy_book.upper_bound) {
+                return -1; 
+            }
+            return price - buy_book.lower_bound;
+        };
 
         void add_order(Order order){
             orders.push(order);
@@ -38,9 +45,66 @@ struct Market {
         };
 
         void place_fok_order(Order order){
+            int index = get_index(order.price());
+            if (index < 0) {
+                return;
+            }
+            if (order.is_buy()) {
+                if (sell_book.price_levels[index].get_total_volume() <= order.volume()) {
+                    sell_book.price_levels[index].remove_volume(order.volume());
+                    buy_book.price_levels[index].add_order(order.id, order.volume());
+                } else {
+
+                    return;
+                }
+
+            } else {
+                if (buy_book.price_levels[index].get_total_volume() <= order.volume()) {
+                    buy_book.price_levels[index].remove_volume(order.volume());
+                    sell_book.price_levels[index].add_order(order.id, order.volume());
+                } else {
+                    return;
+                }
+            }
         };
-        void place_ioc_order(Order order);
-        void place_gtc_order(Order order);
+        void place_ioc_order(Order order){
+            int index = get_index(order.price());
+            if (index < 0) {
+                return;
+            }
+            if (order.is_buy()) {
+                if (sell_book.price_levels[index].get_total_volume() > 0) {
+                    int removed_volume = std::min(order.volume(), sell_book.price_levels[index].get_total_volume());
+                    sell_book.price_levels[index].remove_volume(removed_volume);
+                    if (removed_volume != order.volume()) {
+                        buy_book.price_levels[index].add_order(order.id, order.volume() - removed_volume);
+                    }
+                } else {
+                    return;
+                }
+            } else {
+                if (buy_book.price_levels[index].get_total_volume() > 0) {
+                    int removed_volume = std::min(order.volume(), buy_book.price_levels[index].get_total_volume());
+                    buy_book.price_levels[index].remove_volume(removed_volume);
+                    if (removed_volume != order.volume()) {
+                        sell_book.price_levels[index].add_order(order.id, order.volume() - removed_volume);
+                    }
+                } else {
+                    return;
+                }
+            }
+        };
+        void place_gtc_order(Order order){
+            int index = get_index(order.price());
+            if (index < 0) {
+                return;
+            }
+            if (order.is_buy()) {
+                buy_book.price_levels[index].add_order(order.id, order.volume());
+            } else {
+                sell_book.price_levels[index].add_order(order.id, order.volume());
+            }
+        };
 
         Participant* create_participant(uint32_t user_id){
             Participant* participant = new Participant(user_id, * this);
