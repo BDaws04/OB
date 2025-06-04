@@ -1,0 +1,19 @@
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Iinclude
+SRC_DIR = include
+OBJ_DIR = obj
+TARGET = benchmark
+
+SRCS = $(wildcard $(SRC_DIR)/*.cpp) benchmark.cpp
+OBJS = $(SRCS:.cpp=.o)
+OBJS := $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJ_DIR) $(TARGET)
