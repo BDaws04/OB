@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <price_level.h>
+#include "price_level.h"
 
 struct Book {
     public:
@@ -13,7 +13,7 @@ struct Book {
                     price_levels.emplace_back(lower_bound + i);
                 }
         };
-        ~Book();
+        ~Book() = default;
         inline int get_index(uint32_t price) const {
             if (price < lower_bound || price > upper_bound) {
                 return -1; 

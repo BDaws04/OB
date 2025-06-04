@@ -6,6 +6,8 @@ struct Order {
 public:
     uint32_t id;
 
+    Order() : metadata_(0) {};
+
     Order(uint32_t id,uint32_t price, uint32_t volume,
                  bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK)
         : id(id), price_(price), volume_(volume) {
@@ -19,7 +21,8 @@ public:
     inline bool is_GTC() const { return metadata_ & (1 << 1); }
     inline bool is_IOC() const { return metadata_ & (1 << 2); }
     inline bool is_FOK() const { return metadata_ & (1 << 3); }
-
+    inline bool is_valid() const { return metadata_ & (1 << 4); }
+ 
 private:
     uint32_t price_;
     uint32_t volume_;
@@ -28,9 +31,10 @@ private:
     // Bit 1: is_GTC
     // Bit 2: is_IOC
     // Bit 3: is_FOK
+    // Bit 4: is_valid (to indicate if the order is valid)
     uint32_t metadata_;
 
-    inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK) {
+    inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_valid = true) {
         metadata_ = 0;
         if (is_buy) {
             metadata_ |= 1 << 0;
@@ -43,6 +47,9 @@ private:
         }
         if (is_FOK) {
             metadata_ |= 1 << 3;
+        }
+        if (is_valid) {
+            metadata_ |= 1 << 4;
         }
     }
 };

@@ -2,8 +2,8 @@
 #define PARTICIPANT_H
 
 #include <cstdint>
-#include <order.h>
-#include <market.h>
+#include "order.h"
+#include "market.h"
 
 struct Participant {
 
