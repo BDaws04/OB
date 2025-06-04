@@ -6,6 +6,7 @@
 #include "order.h"
 #include "order_queue.h"
 #include <iostream>
+#include <windows.h>
 
 
 struct Market {
@@ -15,13 +16,23 @@ struct Market {
               buy_book(501, peg_price),
               sell_book(501, peg_price),
               order_count(0),
-              user_count(0) {};
+              user_count(0), 
+              success_orders(0),
+              failed_orders(0) {};
 
         inline int get_index(uint32_t price) const {
             if (price < buy_book.lower_bound || price > buy_book.upper_bound) {
                 return -1; 
             }
             return price - buy_book.lower_bound;
+        };
+
+        inline uint64_t get_success_orders() const {
+            return success_orders;
+        };
+
+        inline uint64_t get_failed_orders() const {
+            return failed_orders;
         };
 
         inline uint32_t get_lower_bound() const {
@@ -37,12 +48,15 @@ struct Market {
         };
 
         void simulate() {
+            HANDLE this_thread = GetCurrentThread();
+            DWORD_PTR mask = 1 << 0;
+            if (SetThreadAffinityMask(this_thread, mask) == 0) {
+                std::cerr << "Failed to set thread affinity inside simulate()" << std::endl;
+            }
             while (true) {
                 Order current = orders.pop();
-                if (!current.is_valid()) {
-                    break;
-                }
                 current.id = order_count++;
+                
 
                 if (current.is_GTC()) {
                     place_gtc_order(current);
@@ -85,16 +99,18 @@ struct Market {
             if (order.is_buy()) {
                 if (sell_book.price_levels[index].get_total_volume() <= order.volume()) {
                     sell_book.price_levels[index].remove_volume(order.volume());
-                    buy_book.price_levels[index].add_order(order.id, order.volume());
+                    success_orders++;
                 } else {
+                    failed_orders++;
                     return;
                 }
 
             } else {
                 if (buy_book.price_levels[index].get_total_volume() <= order.volume()) {
                     buy_book.price_levels[index].remove_volume(order.volume());
-                    sell_book.price_levels[index].add_order(order.id, order.volume());
+                    success_orders++;
                 } else {
+                    failed_orders++;
                     return;
                 }
             }
@@ -112,7 +128,9 @@ struct Market {
                     if (removed_volume != order.volume()) {
                         buy_book.price_levels[index].add_order(order.id, order.volume() - removed_volume);
                     }
+                    success_orders++;
                 } else {
+                    failed_orders++;
                     return;
                 }
             } else {
@@ -122,7 +140,9 @@ struct Market {
                     if (removed_volume != order.volume()) {
                         sell_book.price_levels[index].add_order(order.id, order.volume() - removed_volume);
                     }
+                    success_orders++;
                 } else {
+                    failed_orders++;
                     return;
                 }
             }
@@ -137,6 +157,7 @@ struct Market {
             } else {
                 sell_book.price_levels[index].add_order(order.id, order.volume());
             }
+            success_orders++;
         };
 
     private:
@@ -147,6 +168,8 @@ struct Market {
         uint64_t order_count;   
         uint64_t user_count;
         uint32_t peg_price;
+        uint64_t success_orders;
+        uint64_t failed_orders;
 };
 
 

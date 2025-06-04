@@ -6,49 +6,34 @@
 #include <atomic>
 #include <mutex>
 #include <optional>
+#include <condition_variable>
 
-#include "spinlock.h"
 
-template <typename T>
+
+template<typename T>
 class OrderQueue {
-    private:
-        std::queue<T> queue_;
-        SpinLock lock_;
+private:
+    std::queue<T> queue_;
+    std::mutex mutex_;                   
+    std::condition_variable cond_;         
 
-    public:
-        OrderQueue() = default;
-
-        void push(const T& order) {
-            lock_.lock();
-            queue_.push(order);
-            lock_.unlock();
+public:
+    void push(const T& item) {
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            queue_.push(item);
         }
+        cond_.notify_one();
+    }
 
-        T pop() {
-            lock_.lock();
-            if (!queue_.empty()) {
-                T order = queue_.front();
-                queue_.pop();
-                lock_.unlock();
-                return order;
-            }
-            lock_.unlock();
-            return T();
-        }
-
-        bool empty() {
-            lock_.lock();
-            bool result = queue_.empty();
-            lock_.unlock();
-            return result;
-        }
-
-        size_t size() {
-            lock_.lock();
-            size_t result = queue_.size();
-            lock_.unlock();
-            return result;
-        }
+    T pop() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cond_.wait(lock, [&]() { return !queue_.empty(); });
+        T item = queue_.front();
+        queue_.pop();
+        return item;
+    }
 };
+
 
 #endif

@@ -3,3 +3,5 @@ Version 1:
 - represents levels of the book as vectors 
 - uses a queue + spinlock for multithreaded order receival
 - pops one order at a time for efficiency and safety
+- pin the simulate thread to a core
+Orders per second: 350K

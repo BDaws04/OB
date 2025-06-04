@@ -2,13 +2,14 @@
 #include <chrono>
 #include <iostream>
 #include "include/participant.h"
-#include "thread"
-
+#include <thread>
+#include <random> 
+#include <windows.h>
 
 int main()
 {
     std::vector<Participant*> participants;
-    Market market(1000); // Create a market with a peg price of 1000
+    Market market(1000);
 
     for (int i = 0; i < 10; i++)
     {
@@ -20,28 +21,50 @@ int main()
 
     std::thread market_simulator(&Market::simulate, &market);
 
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    for (int i = 0; i < 100000; i++){
-        for (int j = 0; j < participants.size(); j++)
-        {
-            uint32_t price = min_price + (rand() % (max_price - min_price + 1));
-            uint32_t volume = rand() % 100 + 1; // Random volume between 1 and 100
-            bool is_buy = rand() % 2; // Randomly choose buy or sell
-            bool is_GTC = rand() % 2; // Randomly choose GTC
-            bool is_IOC = rand() % 2; // Randomly choose IOC
-            bool is_FOK = rand() % 2; // Randomly choose FOK
+    market_simulator.detach();
 
-            Order order(i, price, volume, is_buy, is_GTC, is_IOC, is_FOK);
-            participants[j]->place_order(order);
-        }
+    const int orders_per_participant = 100000;
+    std::vector<std::thread> threads;
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < participants.size(); ++i) {
+        threads.emplace_back([&, i]() {
+            thread_local std::mt19937 rng(std::random_device{}() + i);
+
+            std::uniform_int_distribution<uint32_t> price_dist(min_price, max_price);
+            std::uniform_int_distribution<uint32_t> volume_dist(1, 100);
+            std::uniform_int_distribution<int> buy_dist(0, 1);
+            std::uniform_int_distribution<int> order_type_dist(0, 2);
+
+            for (int j = 0; j < orders_per_participant; ++j) {
+                uint32_t price = price_dist(rng);
+                uint32_t volume = volume_dist(rng);
+                bool is_buy = buy_dist(rng) == 1;
+                int order_type = order_type_dist(rng);
+
+                bool is_GTC = (order_type == 0);
+                bool is_IOC = (order_type == 1);
+                bool is_FOK = (order_type == 2);
+
+                Order order(j, price, volume, is_buy, is_GTC, is_IOC, is_FOK);
+                participants[i]->place_order(order);
+            }
+        });
     }
 
-    market_simulator.join();
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Time taken for 1000000 orders: " << elapsed_seconds.count() << " seconds\n";
-    std::cout << "Total orders placed: " << market.get_order_count() << "\n";
-    for (auto& participant : participants) {
-        delete participant; // Clean up dynamically allocated participants
+    for (auto& t : threads) {
+        t.join();
     }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end_time - start_time;
+
+    std::cout << "Total orders placed: " << market.get_order_count() << std::endl;
+    std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
+    std::cout << "------ Market Statistics ----" << std::endl;
+    std::cout << "Successful Orders: " << market.get_success_orders() << std::endl;
+    std::cout << "Failed Orders: " << market.get_failed_orders() << std::endl;
+
 }
+
