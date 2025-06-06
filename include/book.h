@@ -6,9 +6,9 @@
 struct Book {
     public:
         Book(int size,int peg_price) 
-            : total_volume(0), best_price(peg_price), peg_price(peg_price), lower_bound(peg_price - (size / 2)), upper_bound(peg_price + (size / 2)) {
+            : peg_price(peg_price), lower_bound(peg_price - (size / 2)), upper_bound(peg_price + (size / 2)) {
                 for (int i = 0; i < size; ++i){
-                    price_levels.emplace_back(lower_bound + i);
+                    price_levels.emplace_back();
                 }
         };
         ~Book() = default;
@@ -19,7 +19,6 @@ struct Book {
     private:
         bool is_buy;
         uint64_t total_volume;
-        uint32_t best_price;
 };
 
 #endif

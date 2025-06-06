@@ -3,17 +3,25 @@
 
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 struct PriceLevel {
     public:
-        PriceLevel(uint32_t price) : total_volume_(0) {}
+        PriceLevel() : total_volume_(0) {}
 
         void add_order(uint32_t order_id, uint32_t volume) {
+
             orders.push_back({order_id, volume});
             total_volume_ += volume;
         }
 
         void remove_volume(uint32_t volume){
+
+            if (volume == total_volume_) {
+                orders.clear();
+                total_volume_ = 0;
+                return;
+            }
 
             if (volume > total_volume_) {
                     volume = total_volume_; 

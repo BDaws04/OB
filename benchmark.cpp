@@ -4,33 +4,32 @@
 #include <chrono>
 #include <thread>
 #include <random> 
-
-
-int main()
-{
-    simulate(1000, 251, 10, 1000);
-    return 0;
-}
+#include <memory>
 
 void simulate(const int peg_price, const int levels, const int participant_count, const int orders_per_participant) {
-    std::vector<Participant*> participants;
-    Market market(peg_price, levels);
+    std::vector<std::unique_ptr<Participant>> participants;
+
+    auto market = std::make_shared<Market>(peg_price, levels);
 
     for (int i = 0; i < participant_count; i++) {
-        participants.emplace_back(new Participant(i, market));
-    }
+        participants.emplace_back(std::make_unique<Participant>(i, market));
+    }   
 
-    int min_price = market.get_lower_bound(), max_price = market.get_upper_bound();
-    std::thread market_simulator(&Market::simulate, &market);
+    int min_price = market->get_lower_bound(), max_price = market->get_upper_bound();
+
+    std::thread market_simulator([market]() {
+        market->simulate();
+    });
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     market_simulator.detach();
+
     std::vector<std::thread> threads;
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    for (int i = 0; i < participants.size(); ++i) {
+    for (size_t i = 0; i < participants.size(); ++i) {
         threads.emplace_back([&, i]() {
-            thread_local std::mt19937 rng(std::random_device{}() + i);
+            thread_local std::mt19937 rng(12345 + i);
 
             std::uniform_int_distribution<uint32_t> price_dist(min_price, max_price);
             std::uniform_int_distribution<uint32_t> volume_dist(1, 100);
@@ -60,10 +59,18 @@ void simulate(const int peg_price, const int levels, const int participant_count
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end_time - start_time;
 
-    std::cout << "Total orders placed: " << market.get_order_count() << std::endl;
+    std::cout << "Total orders placed: " << market->get_order_count() << std::endl;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
     std::cout << "------ Market Statistics ----" << std::endl;
-    std::cout << "Successful Orders: " << market.get_success_orders() << std::endl;
-    std::cout << "Failed Orders: " << market.get_failed_orders() << std::endl;
+    std::cout << "Successful Orders: " << market->get_success_orders() << std::endl;
+    std::cout << "Failed Orders: " << market->get_failed_orders() << std::endl;
+}
+
+
+
+int main()
+{
+    simulate(1000, 251, 10, 100000);
+    return 0;
 }
 
