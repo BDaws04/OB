@@ -65,6 +65,7 @@ void simulate(const int peg_price, const int levels, const int participant_count
     std::cout << "------ Market Statistics ----" << std::endl;
     std::cout << "Successful Orders: " << market->get_success_orders() << std::endl;
     std::cout << "Failed Orders: " << market->get_failed_orders() << std::endl;
+
 }
 
 
