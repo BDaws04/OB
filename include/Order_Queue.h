@@ -12,7 +12,7 @@ template<typename T>
 class OrderQueue {
 private:
     std::queue<T> queue_;
-    std::mutex mutex_;                   
+    mutable std::mutex mutex_;                   
     std::condition_variable cond_;         
 
 public:
@@ -30,6 +30,11 @@ public:
         T item = queue_.front();
         queue_.pop();
         return item;
+    }
+
+    bool empty() const {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return queue_.empty();
     }
 };
 

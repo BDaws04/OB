@@ -22,8 +22,6 @@ void simulate(const int peg_price, const int levels, const int participant_count
     });
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    market_simulator.detach();
-
     std::vector<std::thread> threads;
     auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -55,6 +53,9 @@ void simulate(const int peg_price, const int levels, const int participant_count
     for (auto& t : threads) {
         t.join();
     }
+
+    market->stop();
+    market_simulator.join();
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end_time - start_time;

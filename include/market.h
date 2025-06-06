@@ -53,7 +53,22 @@ struct Market {
             if (SetThreadAffinityMask(this_thread, mask) == 0) {
                 std::cerr << "Failed to set thread affinity inside simulate()" << std::endl;
             }
-            while (true) {
+            while (running) {
+                Order current = orders.pop();
+                current.id = order_count++;
+                
+                if (current.is_GTC()) {
+                    place_gtc_order(current);
+                }
+                else if (current.is_IOC()) {
+                    place_ioc_order(current);
+                }
+                else if (current.is_FOK()) {
+                    place_fok_order(current);
+                }
+            }
+
+            while(!orders.empty()) {
                 Order current = orders.pop();
                 current.id = order_count++;
                 
@@ -77,6 +92,10 @@ struct Market {
             }
         };
 
+        void stop(){
+            running = false;
+        }
+
         void print_sell_book() const {
             for (int i = 0; i < sell_book.price_levels.size(); ++i) {
                 if (sell_book.price_levels[i].get_total_volume() > 0) {
@@ -90,7 +109,7 @@ struct Market {
             return order_count;
         };
 
-        void place_fok_order(Order order){
+        void place_fok_order(Order& order){
             int index = get_index(order.price());
             if (index < 0) {
                 return;
@@ -114,7 +133,7 @@ struct Market {
                 }
             }
         };
-        void place_ioc_order(Order order){
+        void place_ioc_order(Order& order){
             int index = get_index(order.price());
             if (index < 0) {
                 return;
@@ -147,7 +166,7 @@ struct Market {
             }
         };
 
-        void place_gtc_order(Order order){
+        void place_gtc_order(Order& order){
             int index = get_index(order.price());
             if (index < 0) {
                 return;
@@ -169,6 +188,7 @@ struct Market {
         uint32_t peg_price;
         uint64_t success_orders;
         uint64_t failed_orders;
+        bool running = true; 
 };
 
 
