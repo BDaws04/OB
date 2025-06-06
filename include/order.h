@@ -1,5 +1,6 @@
 #ifndef ORDER_H
 #define ORDER_H
+
 #include <cstdint>
 
 struct Order {
@@ -21,7 +22,6 @@ public:
     inline bool is_GTC() const { return metadata_ & (1 << 1); }
     inline bool is_IOC() const { return metadata_ & (1 << 2); }
     inline bool is_FOK() const { return metadata_ & (1 << 3); }
-    inline bool is_valid() const { return metadata_ & (1 << 4); }
  
 private:
     uint32_t price_;
@@ -31,7 +31,6 @@ private:
     // Bit 1: is_GTC
     // Bit 2: is_IOC
     // Bit 3: is_FOK
-    // Bit 4: is_valid (to indicate if the order is valid)
     uint32_t metadata_;
 
     inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_valid = true) {

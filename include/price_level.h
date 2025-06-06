@@ -1,5 +1,6 @@
 #ifndef PRICE_LEVEL_H
 #define PRICE_LEVEL_H
+
 #include <vector>
 #include <cstdint>
 

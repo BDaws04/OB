@@ -1,20 +1,20 @@
 #ifndef MARKET_H
 #define MARKET_H
 
-
 #include "book.h"
 #include "order.h"
 #include "order_queue.h"
+
 #include <iostream>
 #include <windows.h>
 
 
 struct Market {
     public:
-        Market(uint32_t peg_price)
+        Market(uint32_t peg_price, int levels = 251)
             : peg_price(peg_price),
-              buy_book(501, peg_price),
-              sell_book(501, peg_price),
+              buy_book(levels, peg_price),
+              sell_book(levels, peg_price),
               order_count(0),
               user_count(0), 
               success_orders(0),
@@ -57,7 +57,6 @@ struct Market {
                 Order current = orders.pop();
                 current.id = order_count++;
                 
-
                 if (current.is_GTC()) {
                     place_gtc_order(current);
                 }
@@ -147,6 +146,7 @@ struct Market {
                 }
             }
         };
+
         void place_gtc_order(Order order){
             int index = get_index(order.price());
             if (index < 0) {
@@ -164,14 +164,12 @@ struct Market {
         OrderQueue<Order> orders;
         Book buy_book;
         Book sell_book; 
-
         uint64_t order_count;   
         uint64_t user_count;
         uint32_t peg_price;
         uint64_t success_orders;
         uint64_t failed_orders;
 };
-
 
 
 #endif

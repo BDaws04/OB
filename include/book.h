@@ -1,8 +1,6 @@
 #ifndef BOOK_H
 #define BOOK_H
 
-#include <cstdint>
-#include <vector>
 #include "price_level.h"
 
 struct Book {
@@ -14,19 +12,12 @@ struct Book {
                 }
         };
         ~Book() = default;
-        inline int get_index(uint32_t price) const {
-            if (price < lower_bound || price > upper_bound) {
-                return -1; 
-            }
-            return price - lower_bound;
-        }
         uint32_t lower_bound;
         uint32_t upper_bound;
         uint32_t peg_price;
         std::vector<PriceLevel> price_levels;
     private:
         bool is_buy;
-
         uint64_t total_volume;
         uint32_t best_price;
 };

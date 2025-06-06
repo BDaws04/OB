@@ -1,31 +1,31 @@
 #include "include/market.h"
-#include <chrono>
-#include <iostream>
 #include "include/participant.h"
+
+#include <chrono>
 #include <thread>
 #include <random> 
-#include <windows.h>
+
 
 int main()
 {
-    std::vector<Participant*> participants;
-    Market market(1000);
+    simulate(1000, 251, 10, 1000);
+    return 0;
+}
 
-    for (int i = 0; i < 10; i++)
-    {
+void simulate(const int peg_price, const int levels, const int participant_count, const int orders_per_participant) {
+    std::vector<Participant*> participants;
+    Market market(peg_price, levels);
+
+    for (int i = 0; i < participant_count; i++) {
         participants.emplace_back(new Participant(i, market));
     }
-    
-    int min_price = market.get_lower_bound();
-    int max_price = market.get_upper_bound();
 
+    int min_price = market.get_lower_bound(), max_price = market.get_upper_bound();
     std::thread market_simulator(&Market::simulate, &market);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     market_simulator.detach();
-
-    const int orders_per_participant = 100000;
     std::vector<std::thread> threads;
-
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < participants.size(); ++i) {
@@ -65,6 +65,5 @@ int main()
     std::cout << "------ Market Statistics ----" << std::endl;
     std::cout << "Successful Orders: " << market.get_success_orders() << std::endl;
     std::cout << "Failed Orders: " << market.get_failed_orders() << std::endl;
-
 }
 

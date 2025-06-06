@@ -8,8 +8,6 @@
 #include <optional>
 #include <condition_variable>
 
-
-
 template<typename T>
 class OrderQueue {
 private:

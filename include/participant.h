@@ -1,12 +1,10 @@
 #ifndef PARTICIPANT_H
 #define PARTICIPANT_H
 
-#include <cstdint>
 #include "order.h"
 #include "market.h"
 
 struct Participant {
-
     public:
         inline uint32_t get_user_id() const { return user_id_; }
         inline void place_order(Order Order){
