@@ -13,8 +13,8 @@ struct Market {
     public:
         Market(uint32_t peg_price, int levels = 251)
             : peg_price(peg_price),
-              buy_book(levels, peg_price),
-              sell_book(levels, peg_price),
+              buy_book(levels, peg_price, true),
+              sell_book(levels, peg_price, false),
               order_count(0),
               user_count(0), 
               success_orders(0),
@@ -66,6 +66,9 @@ struct Market {
                 else if (current.is_FOK()) {
                     place_fok_order(current);
                 }
+                else {
+                    place_market_order(current);
+                }
             }
 
             while(!orders.empty()) {
@@ -80,6 +83,9 @@ struct Market {
                 }
                 else if (current.is_FOK()) {
                     place_fok_order(current);
+                }
+                else {
+                    place_market_order(current);
                 }
             }
         }
@@ -177,6 +183,15 @@ struct Market {
                 sell_book.price_levels[index].add_order(order.id, order.volume());
             }
             success_orders++;
+        };
+
+        void place_market_order(Order& order){
+            if (order.is_buy()){
+                // temp
+            }
+            else {
+                // temp
+            }
         };
 
     private:

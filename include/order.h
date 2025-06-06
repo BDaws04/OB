@@ -10,9 +10,9 @@ public:
     Order() : metadata_(0) {};
 
     Order(uint32_t id,uint32_t price, uint32_t volume,
-                 bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK)
+                 bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_market)
         : id(id), price_(price), volume_(volume) {
-        encode_metadata(is_buy, is_GTC, is_IOC, is_FOK);
+        encode_metadata(is_buy, is_GTC, is_IOC, is_FOK, is_market);
     }
 
     inline uint32_t price() const { return price_; }
@@ -22,6 +22,7 @@ public:
     inline bool is_GTC() const { return metadata_ & (1 << 1); }
     inline bool is_IOC() const { return metadata_ & (1 << 2); }
     inline bool is_FOK() const { return metadata_ & (1 << 3); }
+    inline bool is_Market() const { return metadata_ & (1 << 4); }
  
 private:
     uint32_t price_;
@@ -33,7 +34,7 @@ private:
     // Bit 3: is_FOK
     uint32_t metadata_;
 
-    inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_valid = true) {
+    inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_market) {
         metadata_ = 0;
         if (is_buy) {
             metadata_ |= 1 << 0;
@@ -47,7 +48,7 @@ private:
         if (is_FOK) {
             metadata_ |= 1 << 3;
         }
-        if (is_valid) {
+        if (is_market) {
             metadata_ |= 1 << 4;
         }
     }

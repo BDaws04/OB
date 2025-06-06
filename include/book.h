@@ -5,8 +5,8 @@
 
 struct Book {
     public:
-        Book(int size,int peg_price) 
-            : peg_price(peg_price), lower_bound(peg_price - (size / 2)), upper_bound(peg_price + (size / 2)) {
+        Book(int size,int peg_price, bool is_buy) 
+            : peg_price(peg_price), lower_bound(peg_price - (size / 2)), upper_bound(peg_price + (size / 2)), is_buy(is_buy) {
                 for (int i = 0; i < size; ++i){
                     price_levels.emplace_back();
                 }
