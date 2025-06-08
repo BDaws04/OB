@@ -1,42 +1,56 @@
 #ifndef ORDER_QUEUE_H
 #define ORDER_QUEUE_H
 
-#include <queue>
-#include <cstdint>
 #include <atomic>
-#include <mutex>
+#include <memory>
 #include <optional>
-#include <condition_variable>
+
+template<typename T>
+struct Node {
+    std::optional<T> data;
+    std::atomic<Node*> next;
+
+    Node() : next(nullptr) {}
+    Node(T val) : data(std::move(val)), next(nullptr) {}
+};
 
 template<typename T>
 class OrderQueue {
 private:
-    std::queue<T> queue_;
-    mutable std::mutex mutex_;                   
-    std::condition_variable cond_;         
-
+    std::atomic<Node<T>*> head; 
+    Node<T>* tail;               
 public:
-    void push(const T& item) {
-        {
-            std::unique_lock<std::mutex> lock(mutex_);
-            queue_.push(item);
-        }
-        cond_.notify_one();
+    OrderQueue() {
+        Node<T>* dummy = new Node<T>(); 
+        head.store(dummy, std::memory_order_relaxed);
+        tail = dummy;
     }
 
-    T pop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        cond_.wait(lock, [&]() { return !queue_.empty(); });
-        T item = queue_.front();
-        queue_.pop();
-        return item;
+    ~OrderQueue() {
+        while (pop()) {} 
+        delete tail;
+    }
+
+    void push(const T& value) {
+        Node<T>* new_node = new Node<T>(value);
+        Node<T>* prev_head = head.exchange(new_node, std::memory_order_acq_rel);
+        prev_head->next.store(new_node, std::memory_order_release);
+    }
+
+    std::optional<T> pop() {
+        Node<T>* next = tail->next.load(std::memory_order_acquire);
+        if (next) {
+            std::optional<T> result = std::move(next->data);
+            delete tail;
+            tail = next;
+            return result;
+        }
+        return std::nullopt;
     }
 
     bool empty() const {
-        std::unique_lock<std::mutex> lock(mutex_);
-        return queue_.empty();
+        return tail->next.load(std::memory_order_acquire) == nullptr;
     }
 };
-
 
 #endif
