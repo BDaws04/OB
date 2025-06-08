@@ -2,6 +2,25 @@
 
 A high performance L2 Limit Order Book that handles Market, IOC, GTC and FOK orders
 
+### Compiling and Building
+
+To compile and build the project, ensure you have a C++17 compatible compiler installed (e.g., `g++` or `clang++`).
+
+### Using g++
+
+Run the following command in your terminal from the project root directory:
+
+```bash
+g++ -std=c++17 -pthread -o benchmark benchmark.cpp
+```
+
+```CMake
+mkdir build
+cd build
+cmake ..
+make
+```
+
 ### Benchmark:
 Computer Specs: 
 - CPU: Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
