@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-struct Order {
+struct alignas(16) Order {
 public:
     uint32_t id;
 
@@ -32,6 +32,7 @@ private:
     // Bit 1: is_GTC
     // Bit 2: is_IOC
     // Bit 3: is_FOK
+    // Bit 4: is_market
     uint32_t metadata_;
 
     inline void encode_metadata(bool is_buy, bool is_GTC, bool is_IOC, bool is_FOK, bool is_market) {
