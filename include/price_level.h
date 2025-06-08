@@ -10,7 +10,6 @@ struct PriceLevel {
         PriceLevel() : total_volume_(0) {}
 
         void add_order(uint32_t order_id, uint32_t volume) {
-
             orders.push_back({order_id, volume});
             total_volume_ += volume;
         }

@@ -6,12 +6,17 @@
 #include <random> 
 #include <memory>
 
+int DEFAULT_PEG_PRICE = 1000;
+int DEFAULT_LEVELS = 251;
+int DEFAULT_PARTICIPANT_COUNT = 10;
+int DEFAULT_ORDERS_PER_PARTICIPANT = 100000;
+
 void simulate(const int peg_price, const int levels, const int participant_count, const int orders_per_participant) {
     std::vector<std::unique_ptr<Participant>> participants;
 
     auto market = std::make_shared<Market>(peg_price, levels);
 
-    for (int i = 0; i < participant_count; i++) {
+    for (int i = 0; i < participant_count; ++i) {
         participants.emplace_back(std::make_unique<Participant>(i, market));
     }   
 
@@ -32,7 +37,7 @@ void simulate(const int peg_price, const int levels, const int participant_count
             std::uniform_int_distribution<uint32_t> price_dist(min_price, max_price);
             std::uniform_int_distribution<uint32_t> volume_dist(1, 100);
             std::uniform_int_distribution<int> buy_dist(0, 1);
-            std::uniform_int_distribution<int> order_type_dist(0, 2);
+            std::uniform_int_distribution<int> order_type_dist(0, 3);
 
             for (int j = 0; j < orders_per_participant; ++j) {
                 uint32_t price = price_dist(rng);
@@ -43,8 +48,9 @@ void simulate(const int peg_price, const int levels, const int participant_count
                 bool is_GTC = (order_type == 0);
                 bool is_IOC = (order_type == 1);
                 bool is_FOK = (order_type == 2);
+                bool is_market = (order_type == 3);
 
-                Order order(j, price, volume, is_buy, is_GTC, is_IOC, is_FOK);
+                Order order(j, price, volume, is_buy, is_GTC, is_IOC, is_FOK, is_market);
                 participants[i]->place_order(order);
             }
         });
@@ -62,17 +68,18 @@ void simulate(const int peg_price, const int levels, const int participant_count
 
     std::cout << "Total orders placed: " << market->get_order_count() << std::endl;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
-    std::cout << "------ Market Statistics ----" << std::endl;
+    std::cout << "------ Market Statistics ------" << std::endl;
     std::cout << "Successful Orders: " << market->get_success_orders() << std::endl;
     std::cout << "Failed Orders: " << market->get_failed_orders() << std::endl;
 
 }
 
 
-
 int main()
 {
-    simulate(1000, 251, 10, 100000);
+    simulate(DEFAULT_PEG_PRICE, 
+             DEFAULT_LEVELS, 
+             DEFAULT_PARTICIPANT_COUNT, 
+             DEFAULT_ORDERS_PER_PARTICIPANT);
     return 0;
 }
-
