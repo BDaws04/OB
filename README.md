@@ -38,7 +38,7 @@ This project implements a **high-performance order book** optimized for low-late
 ### Core Design
 
 - The order book manages **buy** and **sell** sides separately, each represented by a `Book` instance.
-- Each side holds a vector of `PriceLevel` objects, where each price level tracks the **total available volume** at that price.
+- Each side holds a vector of `PriceLevel` objects, where each price level tracks the **total available volume** at that price and a vector of <order_id, volume> pairs.
 - The `Book` keeps track of the **best price index**, which points to the best bid or ask level in the vector.
 
 ### How Orders Are Processed
