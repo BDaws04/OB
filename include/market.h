@@ -5,6 +5,7 @@
 #include "order.h"
 #include "order_queue.h"
 
+#include <optional>
 #include <iostream>
 #include <windows.h>
 
@@ -35,42 +36,46 @@ struct Market {
             if (SetThreadAffinityMask(this_thread, mask) == 0) {
                 std::cerr << "Failed to set thread affinity inside simulate()" << std::endl;
             }
+
             while (running) {
-                Order current = orders.pop();
-                current.id = order_count++;
-                
-                if (current.is_GTC()) {
-                    place_gtc_order(current);
-                }
-                else if (current.is_IOC()) {
-                    place_ioc_order(current);
-                }
-                else if (current.is_FOK()) {
-                    place_fok_order(current);
-                }
-                else {
-                    place_market_order(current);
+                if (auto current = orders.pop()) {
+                    current->id = order_count++;
+
+                    if (current->is_GTC()) {
+                        place_gtc_order(*current);
+                    }
+                    else if (current->is_IOC()) {
+                        place_ioc_order(*current);
+                    }
+                    else if (current->is_FOK()) {
+                        place_fok_order(*current);
+                    }
+                    else {
+                        place_market_order(*current);
+                    }
                 }
             }
 
-            while(!orders.empty()) {
-                Order current = orders.pop();
-                current.id = order_count++;
-                
-                if (current.is_GTC()) {
-                    place_gtc_order(current);
-                }
-                else if (current.is_IOC()) {
-                    place_ioc_order(current);
-                }
-                else if (current.is_FOK()) {
-                    place_fok_order(current);
-                }
-                else {
-                    place_market_order(current);
+            while (!orders.empty()) {
+                if (auto current = orders.pop()) {
+                    current->id = order_count++;
+
+                    if (current->is_GTC()) {
+                        place_gtc_order(*current);
+                    }
+                    else if (current->is_IOC()) {
+                        place_ioc_order(*current);
+                    }
+                    else if (current->is_FOK()) {
+                        place_fok_order(*current);
+                    }
+                    else {
+                        place_market_order(*current);
+                    }
                 }
             }
         }
+
 
     private:
         //order methods
