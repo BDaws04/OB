@@ -28,8 +28,9 @@ Computer Specs:
 - Compiler: g++ version 15.1.0
 
 Performance:
-(These were completed with the default paramaters as stated in benchmark.cpp)
-- time to complete 1M orders: 0.661981
+The simulation models realistic order probabilities and distributions:
+e.g: GTC = 70%, IOC = 15%, FOK = 5%, Market = 10%
+- 1M orders ~0.6s
 
 ### Order Book Architecture
 

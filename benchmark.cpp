@@ -37,7 +37,10 @@ void simulate(const int peg_price, const int levels, const int participant_count
             std::uniform_int_distribution<uint32_t> price_dist(min_price, max_price);
             std::uniform_int_distribution<uint32_t> volume_dist(1, 100);
             std::uniform_int_distribution<int> buy_dist(0, 1);
-            std::uniform_int_distribution<int> order_type_dist(0, 3);
+
+            // Weighted distribution: [GTC, IOC, FOK, Market]
+            // GTC: 70%, IOC: 15%, FOK: 5%, Market: 10%
+            std::discrete_distribution<int> order_type_dist({70, 15, 5, 10});
 
             for (int j = 0; j < orders_per_participant; ++j) {
                 uint32_t price = price_dist(rng);
@@ -55,6 +58,7 @@ void simulate(const int peg_price, const int levels, const int participant_count
             }
         });
     }
+
 
     for (auto& t : threads) {
         t.join();
