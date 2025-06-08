@@ -6,6 +6,11 @@
 #include <random> 
 #include <memory>
 
+int DEFAULT_PEG_PRICE = 1000;
+int DEFAULT_LEVELS = 251;
+int DEFAULT_PARTICIPANT_COUNT = 10;
+int DEFAULT_ORDERS_PER_PARTICIPANT = 100000;
+
 void simulate(const int peg_price, const int levels, const int participant_count, const int orders_per_participant) {
     std::vector<std::unique_ptr<Participant>> participants;
 
@@ -67,16 +72,14 @@ void simulate(const int peg_price, const int levels, const int participant_count
     std::cout << "Successful Orders: " << market->get_success_orders() << std::endl;
     std::cout << "Failed Orders: " << market->get_failed_orders() << std::endl;
 
-    std::cout << "Buy Book:" << std::endl;
-    market->print_buy_book();
-    std::cout << "Sell Book:" << std::endl;
-    market->print_sell_book();
-
 }
 
 
 int main()
 {
-    simulate(1000, 251, 10, 100000);
+    simulate(DEFAULT_PEG_PRICE, 
+             DEFAULT_LEVELS, 
+             DEFAULT_PARTICIPANT_COUNT, 
+             DEFAULT_ORDERS_PER_PARTICIPANT);
     return 0;
 }
