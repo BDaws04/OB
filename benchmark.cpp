@@ -8,8 +8,8 @@
 
 int DEFAULT_PEG_PRICE = 1000;
 int DEFAULT_LEVELS = 251;
-int DEFAULT_PARTICIPANT_COUNT = 10;
-int DEFAULT_ORDERS_PER_PARTICIPANT = 100000;
+int DEFAULT_PARTICIPANT_COUNT = 1000;
+int DEFAULT_ORDERS_PER_PARTICIPANT = 1000;
 
 void simulate(const int peg_price, const int levels, const int participant_count, const int orders_per_participant) {
     std::vector<std::unique_ptr<Participant>> participants;
@@ -25,6 +25,7 @@ void simulate(const int peg_price, const int levels, const int participant_count
     std::thread market_simulator([market]() {
         market->simulate();
     });
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     std::vector<std::thread> threads;
@@ -75,6 +76,7 @@ void simulate(const int peg_price, const int levels, const int participant_count
     std::cout << "------ Market Statistics ------" << std::endl;
     std::cout << "Successful Orders: " << market->get_success_orders() << std::endl;
     std::cout << "Failed Orders: " << market->get_failed_orders() << std::endl;
+
 
 }
 

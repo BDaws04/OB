@@ -31,6 +31,7 @@ struct Market {
             running = false;
         }
         void simulate() {
+            
             HANDLE this_thread = GetCurrentThread();
             DWORD_PTR mask = 1 << 0;
             if (SetThreadAffinityMask(this_thread, mask) == 0) {
